@@ -945,37 +945,39 @@ def get_event(event_id):
 
 @app.route('/api/search', methods=['GET'])
 def search_events():
-   
-    query = request.args.get('q', '').lower()
-    
+    query = request.args.get('q', '')
+
     if not query:
         return jsonify({
             "success": False,
             "error": "Search query is required"
         }), 400
-    
-    # Filter events based on search query
+
+    query_lower = query.lower()
+
+    # Filter events
     results = [
         e for e in EVENTS_DB
-        if query in e['title'].lower() 
-        or query in e['venue'].lower()
-        or query in e['description'].lower()
+        if query_lower in e['title'].lower()
+        or query_lower in e['venue'].lower()
+        or query_lower in e['description'].lower()
     ]
-    
-    
-    search_message = f'Search results for: "{query}" - Found {len(results)} event(s)'
-    
+
+    # ✅ FIX: Escape user-controlled input
+    safe_query = escape_html(query)
+
+    search_message = f'Search results for: "{safe_query}" - Found {len(results)} event(s)'
+
     response = {
         "success": True,
-        "search_query": query,  
-        "search_message": search_message, 
+        "search_query": safe_query,  # ✅ sanitized
+        "search_message": search_message,  # ✅ sanitized
         "results_count": len(results),
         "data": results,
-        "note": "This endpoint contains a search_message field"
+        "note": "User input is safely escaped to prevent XSS"
     }
-    
-    return jsonify(response), 200
 
+    return jsonify(response), 200
 
 @app.route('/api/search/safe', methods=['GET'])
 def search_events_safe():
