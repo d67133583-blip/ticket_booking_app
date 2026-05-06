@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketHub - Book Your Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            font-size: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-btn, .search-btn {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover, .filter-btn:hover {
+            background: #764ba2;
+        }
+
+        .search-result-info {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .api-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+
+        .status-dot.offline {
+            background: #f44336;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .filter-chip:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-chip.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+
+        .event-content {
+            padding: 20px;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .event-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .event-description {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .event-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .event-tickets {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .book-btn:hover {
+            background: #764ba2;
+        }
+
+        .book-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .confirm-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background: #764ba2;
+        }
+
+        .cancel-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .api-note {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .api-note a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="api-status" id="apiStatus">
+        <div class="status-dot"></div>
+        <span id="statusText">Checking API...</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span>🎫</span>
+                TicketHub
+            </div>
+            <nav class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#events">Events</a>
+                <a href="#bookings" onclick="loadUserBookings()">My Bookings</a>
+                <a href="#contact">Contact</a>
+            </nav>
+        </header>
+
+        <div class="search-section">
+            <h2 style="margin-bottom: 20px; color: #333;">Find Your Perfect Event</h2>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Search events by name, artist, or venue..."
+                >
+                <button class="search-btn" onclick="searchEvents()">Search</button>
+                <button class="filter-btn" onclick="toggleFilters()">Filters</button>
+            </div>
+
+            <div id="searchResultInfo"></div>
+
+            <div class="filters">
+                <div class="filter-chip active" onclick="filterByCategory(this, 'all')">All Events</div>
+                <div class="filter-chip" onclick="filterByCategory(this, 'concert')">🎵 Concerts</div>
+                <div class="filter-chip" onclick="filterByCategory(this, 'sports')">🏀 Sports</div>
+                <div class="filter-chip" onclick="filterByCategory(this, 'theater')">🎭 Theater</div>
+                <div class="filter-chip" onclick="filterByCategory(this, 'conference')">💼 Conferences</div>
+            </div>
+
+            <div class="api-note">
+                ℹ️ <strong>XSS Vulnerability:</strong> Try searching with <code>&lt;img src=x onerror="alert('XSS')"&gt;</code> in the search box to see the reflected XSS vulnerability from the backend API. See documentation for more details.
+            </div>
+        </div>
+
+        <div class="events-grid" id="eventsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading events...</p>
+            </div>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <h2>No events found</h2>
+            <p>Try adjusting your search or filters</p>
+        </div>
+
+        <div class="modal" id="bookingModal">
+            <div class="modal-content">
+                <div class="modal-header">Book Event Ticket</div>
+                <div class="modal-body">
+                    <div id="modalEventDetails"></div>
+
+                    <div class="form-group">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" class="form-input" id="customerName" placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="customerEmail" placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Number of Tickets</label>
+                        <input type="number" class="form-input" id="ticketQuantity" min="1" max="10" value="1" placeholder="Number of tickets">
+                    </div>
+
+                    <div class="form-group">
+                        <strong>Total Price: $<span id="modalTotalPrice">0</span></strong>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn confirm-btn" onclick="confirmBooking()">Confirm Booking</button>
+                    <button class="modal-btn cancel-btn" onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 TicketHub. All rights reserved. | Backend API: <span id="apiUrl">http://localhost:5000</span></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let allEvents = [];
+        let filteredEvents = [];
+        let currentCategory = 'all';
+        let selectedEvent = null;
+
+        // Check API health on page load
+        window.addEventListener('load', () => {
+            checkApiHealth();
+            loadAllEvents();
+        });
+
+        async function checkApiHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    setApiStatus(true);
+                    return true;
+                } else {
+                    setApiStatus(false);
+                    return false;
+                }
+            } catch (error) {
+                setApiStatus(false);
+                return false;
+            }
+        }
+
+        function setApiStatus(isOnline) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('statusText');
+
+            if (isOnline) {
+                statusDot.classList.remove('offline');
+                statusText.textContent = 'API Online';
+            } else {
+                statusDot.classList.add('offline');
+                statusText.textContent = 'API Offline';
+            }
+        }
+
+        async function loadAllEvents() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/events`);
+                const data = await response.json();
+
+                if (data.success) {
+                    allEvents = data.data;
+                    filteredEvents = [...allEvents];
+                    renderEvents();
+                } else {
+                    showError('Failed to load events');
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showError('Could not connect to API. Make sure the backend is running.');
+            }
+        }
+
+        function renderEvents() {
+            const grid = document.getElementById('eventsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredEvents.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+            } else {
+                grid.style.display = 'grid';
+                emptyState.style.display = 'none';
+                grid.innerHTML = filteredEvents.map(event => `
+                    <div class="event-card">
+                        <div class="event-image">${event.icon}</div>
+                        <div class="event-content">
+                            <div class="event-title">${escapeHtml(event.title)}</div>
+                            <div class="event-meta">
+                                <span>📅 ${event.date}</span>
+                                <span>🕐 ${event.time}</span>
+                            </div>
+                            <div class="event-meta">
+                                <span>📍 ${escapeHtml(event.venue)}</span>
+                            </div>
+                            <div class="event-description">${escapeHtml(event.description)}</div>
+                            <div class="event-price">$${event.price}</div>
+                            <div class="event-tickets">📊 ${event.available_tickets} tickets available</div>
+                            <button class="book-btn" onclick="openBookingModal(${event.id})">Book Now</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function filterByCategory(chip, category) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentCategory = category;
+
+            if (category === 'all') {
+                filteredEvents = [...allEvents];
+            } else {
+                filteredEvents = allEvents.filter(e => e.category === category);
+            }
+
+            clearSearchInfo();
+            renderEvents();
+        }
+
+        async function searchEvents() {
+            const query = document.getElementById('searchInput').value;
+
+            if (query === '') {
+                filteredEvents = currentCategory === 'all'
+                    ? [...allEvents]
+                    : allEvents.filter(e => e.category === currentCategory);
+                clearSearchInfo();
+                renderEvents();
+                return;
+            }
+
+            try {
+                // Using vulnerable endpoint to show XSS
+                const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    filteredEvents = data.data;
+
+                    // VULNERABLE: This displays the search_message from the backend which contains unescaped user input
+                    const resultInfo = document.getElementById('searchResultInfo');
+                    resultInfo.innerHTML = `<strong>Search results for:</strong> "${query}" - Found ${filteredEvents.length} event(s)`;
+
+                    renderEvents();
+                } else {
+                    showError(data.error || 'Search failed');
+                }
+            } catch (error) {
+                console.error('Error searching events:', error);
+                showError('Could not perform search');
+            }
+        }
+
+        function clearSearchInfo() {
+            document.getElementById('searchResultInfo').innerHTML = '';
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function openBookingModal(eventId) {
+            selectedEvent = allEvents.find(e => e.id === eventId);
+            if (selectedEvent) {
+                const details = `
+                    <div>
+                        <strong>${escapeHtml(selectedEvent.title)}</strong>
+                        <p style="margin-top: 10px; color: #777;">
+                            ${escapeHtml(selectedEvent.date)} at ${selectedEvent.time}<br>
+                            ${escapeHtml(selectedEvent.venue)}
+                        </p>
+                    </div>
+                `;
+                document.getElementById('modalEventDetails').innerHTML = details;
+                document.getElementById('ticketQuantity').max = selectedEvent.available_tickets;
+                document.getElementById('ticketQuantity').value = 1;
+                updateTotalPrice();
+                document.getElementById('bookingModal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        function updateTotalPrice() {
+            const quantity = parseInt(document.getElementById('ticketQuantity').value) || 1;
+            const total = selectedEvent.price * quantity;
+            document.getElementById('modalTotalPrice').textContent = total;
+        }
+
+        async function confirmBooking() {
+            const name = document.getElementById('customerName').value;
+            const email = document.getElementById('customerEmail').value;
+            const quantity = parseInt(document.getElementById('ticketQuantity').value);
+
+            if (!name || !email || !quantity) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/booking`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_id: selectedEvent.id,
+                        customer_name: name,
+                        customer_email: email,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`✅ Booking confirmed!\n\nBooking ID: ${data.data.booking_id}\nConfirmation sent to: ${email}`);
+                    closeModal();
+                    loadAllEvents();
+                } else {
+                    alert('❌ Booking failed: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error confirming booking:', error);
+                alert('Could not process booking');
+            }
+        }
+
+        async function loadUserBookings() {
+            const email = prompt('Enter your email to view bookings:');
+            if (email) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/bookings?email=${encodeURIComponent(email)}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (data.data.length === 0) {
+                            alert('No bookings found for this email');
+                        } else {
+                            let message = `You have ${data.data.length} booking(s):\n\n`;
+                            data.data.forEach((b, i) => {
+                                message += `${i + 1}. ${b.event_title}\n   Booking ID: ${b.booking_id}\n   Tickets: ${b.quantity}\n   Total: $${b.total_price}\n\n`;
+                            });
+                            alert(message);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading bookings:', error);
+                    alert('Could not load bookings');
+                }
+            }
+        }
+
+        function showError(message) {
+            alert('Error: ' + message);
+        }
+
+        function toggleFilters() {
+            alert('Advanced filters are coming soon!');
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchEvents();
+            }
+        });
+
+        document.getElementById('ticketQuantity').addEventListener('change', updateTotalPrice);
+
+        document.getElementById('bookingModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
